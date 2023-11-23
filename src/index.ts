@@ -1,9 +1,10 @@
-import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
-import { getTwitchToken } from "./twitch/token";
-import { getUsersData } from "./twitch/requests";
+import { Hono } from "hono";
+import { cache } from "hono/cache";
 import { cors } from "hono/cors";
+import { z } from "zod";
+import { getUsersData } from "./twitch/requests";
+import { getTwitchToken } from "./twitch/token";
 
 type Environment = {
   TWITCH_CLIENT_SECRET: string;
@@ -22,6 +23,10 @@ app.get(
       login: z.string(),
     })
   ),
+  cache({
+    cacheName: "warmon-twitch-user-picture",
+    cacheControl: "max-age=3600",
+  }),
   async (c) => {
     console.log("test");
     const env = c.env as Environment;
