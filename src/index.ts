@@ -15,7 +15,35 @@ const app = new Hono();
 app.use("*", cors());
 
 app.get(
-  "/user-id/:login",
+  "/user/picture/:login",
+  zValidator(
+    "param",
+    z.object({
+      login: z.string(),
+    })
+  ),
+  async (c) => {
+    console.log("test");
+    const env = c.env as Environment;
+    const clientId = env.TWITCH_CLIENT_ID;
+
+    const token = await getTwitchToken({
+      clientId: clientId,
+      clientSecret: env.TWITCH_CLIENT_SECRET,
+    });
+
+    const usersData = await getUsersData({
+      channels: [c.req.valid("param").login],
+      token,
+      clientId: clientId,
+    });
+
+    return c.redirect(usersData[0].profile_image_url);
+  }
+);
+
+app.get(
+  "/user/id/:login",
   zValidator(
     "param",
     z.object({
