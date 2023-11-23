@@ -43,7 +43,13 @@ app.get(
       clientId: clientId,
     });
 
-    return c.redirect(usersData[0].profile_image_url);
+    const imageResponse = await fetch(usersData[0].profile_image_url);
+
+    return c.newResponse(imageResponse.body, {
+      headers: {
+        "Content-Type": "image/png",
+      },
+    });
   }
 );
 
