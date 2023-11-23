@@ -25,7 +25,7 @@ app.get(
   ),
   cache({
     cacheName: "warmon-twitch-user-picture",
-    cacheControl: "max-age=3600",
+    cacheControl: "max-age=600",
   }),
   async (c) => {
     console.log("test");
