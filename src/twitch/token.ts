@@ -27,3 +27,26 @@ export async function getTwitchToken(env: Environment) {
 
   return json.access_token;
 }
+
+export async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  env: Environment
+) {
+  try {
+    let response = await fetch(url, options);
+    if (response.status === 401) {
+      // Refresh the token
+      const newToken = await getTwitchToken(env);
+      options.headers = {
+        ...options.headers,
+        Authorization: `Bearer ${newToken}`,
+      };
+      // Retry the fetch call with the new token
+      return fetch(url, options);
+    }
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}

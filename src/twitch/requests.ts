@@ -1,4 +1,5 @@
 import { Environment } from "..";
+import { fetchWithRetry } from "./token";
 
 type TwitchBroadcaster = {
   id: string;
@@ -32,11 +33,11 @@ type BadgesResponse = {
 export async function getUsersData({
   channels,
   token,
-  clientId,
+  env,
 }: {
   channels: string[];
   token: string;
-  clientId: string;
+  env: Environment;
 }) {
   const params = new URLSearchParams();
   for (const participant of channels) {
@@ -45,12 +46,16 @@ export async function getUsersData({
 
   return (
     await (
-      await fetch(`https://api.twitch.tv/helix/users?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Client-Id": clientId,
+      await fetchWithRetry(
+        `https://api.twitch.tv/helix/users?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Client-Id": env.TWITCH_CLIENT_ID,
+          },
         },
-      })
+        env
+      )
     ).json<{ data: TwitchBroadcaster[] }>()
   ).data;
 }
@@ -58,20 +63,21 @@ export async function getUsersData({
 export async function getChannelBadges({
   userId,
   token,
-  clientId,
+  env,
 }: {
   userId: string;
   token: string;
-  clientId: string;
+  env: Environment;
 }) {
-  const response = await fetch(
+  const response = await fetchWithRetry(
     `https://api.twitch.tv/helix/chat/badges?broadcaster_id=${userId}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Client-Id": clientId,
+        "Client-Id": env.TWITCH_CLIENT_ID,
       },
-    }
+    },
+    env
   );
   const json = (await response.json()) as BadgesResponse;
   return json.data;
@@ -79,19 +85,20 @@ export async function getChannelBadges({
 
 export async function getGlobalBadges({
   token,
-  clientId,
+  env,
 }: {
   token: string;
-  clientId: string;
+  env: Environment;
 }) {
-  const response = await fetch(
+  const response = await fetchWithRetry(
     `https://api.twitch.tv/helix/chat/badges/global`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Client-Id": clientId,
+        "Client-Id": env.TWITCH_CLIENT_ID,
       },
-    }
+    },
+    env
   );
   const json = (await response.json()) as BadgesResponse;
   return json.data;
@@ -114,7 +121,7 @@ export async function getChannelId({
   const usersData = await getUsersData({
     channels: [login],
     token,
-    clientId: env.TWITCH_CLIENT_ID,
+    env,
   });
 
   await env.TWITCH_HELPER_KV.put(`twitch-id-${login}`, usersData[0].id, {

@@ -42,7 +42,7 @@ app.get(
     const usersData = await getUsersData({
       channels: [c.req.valid("param").login],
       token,
-      clientId: clientId,
+      env,
     });
 
     const imageResponse = await fetch(usersData[0].profile_image_url);
@@ -72,7 +72,7 @@ app.get(
     const usersData = await getUsersData({
       channels: [c.req.valid("param").login],
       token,
-      clientId: clientId,
+      env,
     });
 
     return c.json({
@@ -138,11 +138,11 @@ app.get(
       getChannelBadges({
         userId,
         token,
-        clientId,
+        env,
       }),
       getGlobalBadges({
         token,
-        clientId,
+        env,
       }),
     ]);
 
