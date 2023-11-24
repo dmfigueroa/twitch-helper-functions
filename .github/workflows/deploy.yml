@@ -18,7 +18,7 @@ jobs:
         env:
           WRANGLER_TOML: ${{ secrets.WRANGLER_TOML }}
       - name: Build
-        run: pnpm install && pnpm run build
+        run: pnpm install
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
