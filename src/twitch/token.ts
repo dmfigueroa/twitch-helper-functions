@@ -1,7 +1,6 @@
 import { Environment } from "..";
 
 export async function getTwitchToken(env: Environment) {
-  console.log(env.TWITCH_HELPER_KV);
   const cachedToken = await env.TWITCH_HELPER_KV.get("twitch-token");
   if (cachedToken) {
     return cachedToken;

@@ -146,8 +146,6 @@ app.get(
       }),
     ]);
 
-    console.log({ badges, globalBadges });
-
     let badgeUrl = badges
       .find((badge) => badge.set_id === c.req.valid("param").set_id)
       ?.versions.find(
