@@ -5,14 +5,16 @@ import { cors } from "hono/cors";
 import { z } from "zod";
 import {
   getChannelBadges,
+  getChannelId,
   getGlobalBadges,
   getUsersData,
 } from "./twitch/requests";
 import { getTwitchToken } from "./twitch/token";
 
-type Environment = {
+export type Environment = {
   TWITCH_CLIENT_SECRET: string;
   TWITCH_CLIENT_ID: string;
+  TWITCH_HELPER_KV: KVNamespace;
 };
 
 const app = new Hono();
@@ -32,14 +34,10 @@ app.get(
     cacheControl: "max-age=600",
   }),
   async (c) => {
-    console.log("test");
     const env = c.env as Environment;
     const clientId = env.TWITCH_CLIENT_ID;
 
-    const token = await getTwitchToken({
-      clientId: clientId,
-      clientSecret: env.TWITCH_CLIENT_SECRET,
-    });
+    const token = await getTwitchToken(env);
 
     const usersData = await getUsersData({
       channels: [c.req.valid("param").login],
@@ -69,10 +67,7 @@ app.get(
     const env = c.env as Environment;
     const clientId = env.TWITCH_CLIENT_ID;
 
-    const token = await getTwitchToken({
-      clientId: clientId,
-      clientSecret: env.TWITCH_CLIENT_SECRET,
-    });
+    const token = await getTwitchToken(env);
 
     const usersData = await getUsersData({
       channels: [c.req.valid("param").login],
@@ -96,20 +91,14 @@ app.get(
   ),
   async (c) => {
     const env = c.env as Environment;
-    const clientId = env.TWITCH_CLIENT_ID;
 
-    const token = await getTwitchToken({
-      clientId: clientId,
-      clientSecret: env.TWITCH_CLIENT_SECRET,
-    });
+    const token = await getTwitchToken(env);
 
-    const usersData = await getUsersData({
-      channels: [c.req.valid("param").login],
+    const userId = await getChannelId({
+      login: c.req.valid("param").login,
       token,
-      clientId: clientId,
+      env,
     });
-
-    const userId = usersData[0].id;
 
     const response = await fetch(
       `https://api.betterttv.net/3/cached/users/twitch/${userId}`
@@ -137,18 +126,13 @@ app.get(
     const env = c.env as Environment;
     const clientId = env.TWITCH_CLIENT_ID;
 
-    const token = await getTwitchToken({
-      clientId: clientId,
-      clientSecret: env.TWITCH_CLIENT_SECRET,
-    });
+    const token = await getTwitchToken(env);
 
-    const usersData = await getUsersData({
-      channels: [c.req.valid("param").login],
+    const userId = await getChannelId({
+      login: c.req.valid("param").login,
       token,
-      clientId: clientId,
+      env,
     });
-
-    const userId = usersData[0].id;
 
     const [badges, globalBadges] = await Promise.all([
       getChannelBadges({

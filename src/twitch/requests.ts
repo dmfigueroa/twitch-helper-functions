@@ -1,3 +1,5 @@
+import { Environment } from "..";
+
 type TwitchBroadcaster = {
   id: string;
   login: string;
@@ -93,4 +95,31 @@ export async function getGlobalBadges({
   );
   const json = (await response.json()) as BadgesResponse;
   return json.data;
+}
+
+export async function getChannelId({
+  login,
+  token,
+  env,
+}: {
+  login: string;
+  token: string;
+  env: Environment;
+}) {
+  const cachedId = await env.TWITCH_HELPER_KV.get(`twitch-id-${login}`);
+  if (cachedId) {
+    return cachedId;
+  }
+
+  const usersData = await getUsersData({
+    channels: [login],
+    token,
+    clientId: env.TWITCH_CLIENT_ID,
+  });
+
+  await env.TWITCH_HELPER_KV.put(`twitch-id-${login}`, usersData[0].id, {
+    expirationTtl: 60 * 60 * 24 * 7, //
+  });
+
+  return usersData[0].id;
 }
