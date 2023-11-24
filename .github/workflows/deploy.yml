@@ -5,7 +5,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    name: Deploy to Cloudflare Pages
+    name: Deploy to Cloudflare Workers
     steps:
       - uses: pnpm/action-setup@v2
         with:
@@ -17,10 +17,11 @@ jobs:
         shell: bash
         env:
           WRANGLER_TOML: ${{ secrets.WRANGLER_TOML }}
-      - name: Build
+      - name: Install dependencies
         run: pnpm install
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --minify src/index.ts
