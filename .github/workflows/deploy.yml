@@ -1,0 +1,26 @@
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy to Cloudflare Pages
+    steps:
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - name: Checkout
+        uses: actions/checkout@v3
+      # Run your project's build step
+      - run: 'echo "$WRANGLER_TOML" > wrangler.toml'
+        shell: bash
+        env:
+          WRANGLER_TOML: ${{ secrets.WRANGLER_TOML }}
+      - name: Build
+        run: pnpm install && pnpm run build
+      - name: Publish
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
